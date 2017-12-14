@@ -1,0 +1,66 @@
+
+E_Result = zeros(1,maxk)
+M_result = E_Result
+
+E_Avg = 0
+M_Avg = E_Avg
+
+step_size = 2
+sizeVX = size(Xvalid,1)
+
+E_distance = 0
+M_distance = 0
+
+partial_sum = 0
+total_sum = 0
+
+
+
+for i = 1:step_size:maxk
+    E_Avg = 0
+    M_Avg = 0
+    for j = 1:sizeVX
+        %fprintf('%d\n',j)
+        tempTrain = Xtrain
+        tempTrain2 = Xtrain
+        for k = 1:sizeVX
+            tempTrain(k,:) = tempTrain(k,:) - Xvalid(k,:);
+            tempTrain2(k,:) = tempTrain2(k,:) - Xvalid(k,:);
+            tempTrain(k,:) = tempTrain(k,:) .^ 2;
+            tempTrain2(k,:) = abs(tempTrain2(k,:));
+        end
+        E_distance = sqrt(sum(tempTrain,2));
+        E_distance = [E_distance Ytrain];
+        E_distance = sortrows(E_distance)
+        
+        M_distance = sum(tempTrain2,2);
+        M_distance = [M_distance Ytrain];
+        M_distance = sortrows(M_distance)
+        
+        [E_Avg M_Avg] = checker(E_distance,M_distance,Yvalid,i,j)
+        
+        
+    end
+     E_Result(1,i) = E_Avg/sizeVX
+     M_Result(1,i) = M_Avg/sizeVX
+end
+
+ifE = min(min(E_Result(1:step_size:maxk)))
+ifM = min(min(M_Result(1:step_size:maxk)))
+for m = 1:step_size:maxk
+    if (ifE <= ifM) && (ifE == E_Result(m))
+        k = m;
+        lnorm = 2;
+        break;
+    elseif (ifM < ifE) && (ifM == M_Result(m))
+        k = m;
+        lnorm = 1;
+        break;
+    end
+end
+
+hold on;
+plot((1:step_size:maxk),E_Result(1:step_size:maxk),'b');
+plot((1:step_size:maxk),M_Result(1:step_size:maxk),'r');
+hold off;
+end
